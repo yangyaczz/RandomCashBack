@@ -10,9 +10,11 @@ contract MockUSDCScript is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
-        MockUSDC usdt = new MockUSDC();
+        // MockUSDC usdt = new MockUSDC();
+        MockUSDC usdt = MockUSDC(0xA7ab21686D40Aa35Cb51137A795D84A57352F593);
 
-        usdt.mint(0xBEbAF2a9ad714fEb9Dd151d81Dd6d61Ae0535646, 1000 * 10 ** 18);
+
+        usdt.mint(0xBEbAF2a9ad714fEb9Dd151d81Dd6d61Ae0535646, 10000 * 10 ** 18);
 
         vm.stopBroadcast();
     }
@@ -41,12 +43,10 @@ contract MockUSDCScript is Script {
     //     vm.stopBroadcast();
     // }
 
-    // forge script script/deploy.s.sol:MockUSDTScript --rpc-url https://sepolia.base.org --legacy --broadcast
+    // forge script script/deploy.s.sol:MockUSDCScript --rpc-url https://sepolia.base.org --legacy --broadcast
 
     // forge script script/deploy.s.sol:MockUSDCScript --rpc-url https://alfajores-forno.celo-testnet.org --legacy --broadcast
     // forge script script/deploy.s.sol:MockUSDCScript --rpc-url https://sepolia.base.org --legacy --broadcast
-
-
 
     // forge script script/AddressTagSBT.s.sol:AddressTagSBTScript --rpc-url https://network.ambrosus-test.io --legacy --broadcast -vvvv
 }
