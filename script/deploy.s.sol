@@ -13,7 +13,6 @@ contract MockUSDCScript is Script {
         // MockUSDC usdt = new MockUSDC();
         MockUSDC usdt = MockUSDC(0xA7ab21686D40Aa35Cb51137A795D84A57352F593);
 
-
         usdt.mint(0xBEbAF2a9ad714fEb9Dd151d81Dd6d61Ae0535646, 10000 * 10 ** 18);
 
         vm.stopBroadcast();

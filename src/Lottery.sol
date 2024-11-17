@@ -26,39 +26,21 @@ contract Lottery is Ownable {
     mapping(uint256 => Round) public rounds;
     uint256 public currentRound;
 
-    event RoundCreated(
-        uint256 indexed roundNum,
-        uint256 startTime,
-        uint256 endTime,
-        uint256[3] rewards
-    );
+    event RoundCreated(uint256 indexed roundNum, uint256 startTime, uint256 endTime, uint256[3] rewards);
     event RoundSettled(uint256 indexed roundNum, uint256[3] numbers);
-    event RewardClaimed(
-        uint256 indexed roundNum,
-        address indexed user,
-        uint256 level,
-        uint256 amount
-    );
+    event RewardClaimed(uint256 indexed roundNum, address indexed user, uint256 level, uint256 amount);
 
-    // 构造函数
     constructor(address _rewardToken) Ownable(msg.sender) {
         rewardToken = ERC20(_rewardToken);
     }
 
-    // 创建新一轮
-    function createRound(
-        uint256 startTime,
-        uint256 endTime,
-        uint256[] memory rewards
-    ) external {
+    // round
+    function createRound(uint256 startTime, uint256 endTime, uint256[] memory rewards) external {
         require(startTime < endTime, "Invalid time range");
 
-        // 检查合约是否有足够的代币支付所有可能的奖励
+        // check
         uint256 totalRewards = rewards[0] + rewards[1] + rewards[2];
-        require(
-            rewardToken.balanceOf(address(this)) >= totalRewards,
-            "Insufficient reward token balance"
-        );
+        require(rewardToken.balanceOf(address(this)) >= totalRewards, "Insufficient reward token balance");
 
         currentRound++;
         Round storage newRound = rounds[currentRound];
@@ -76,14 +58,12 @@ contract Lottery is Ownable {
         emit RoundCreated(currentRound, startTime, endTime, [rewards[0], rewards[1], rewards[2]]);
     }
 
-    // 生成随机数（这里仅作示例，实际应使用更安全的随机数生成方式如Chainlink VRF）
+    // fake vfr
     function generateRandom() internal view returns (uint256[3] memory) {
         uint256[3] memory numbers;
-        bytes32 hash = keccak256(
-            abi.encodePacked(block.timestamp, block.difficulty, msg.sender)
-        );
+        bytes32 hash = keccak256(abi.encodePacked(block.timestamp, block.difficulty, msg.sender));
 
-        // 使用模10来获取个位数（0-9）
+        // 0-9
         numbers[0] = uint256(hash) % 10;
         numbers[1] = uint256(keccak256(abi.encodePacked(hash, "SECOND"))) % 10;
         numbers[2] = uint256(keccak256(abi.encodePacked(hash, "THIRD"))) % 10;
@@ -95,8 +75,8 @@ contract Lottery is Ownable {
     function settleRound(uint256 roundNum, bytes32 merkleRoot) external {
         Round storage round = rounds[roundNum];
 
-        // require(block.timestamp >= round.endTime, "Round not ended yet");
-        // require(!round.isSettled, "Round already settled");
+        require(block.timestamp >= round.endTime, "Round not ended yet");
+        require(!round.isSettled, "Round already settled");
 
         round.numbers = generateRandom();
         round.merkleRoot = merkleRoot;
@@ -107,45 +87,33 @@ contract Lottery is Ownable {
     }
 
     // 领取奖励
-    function claimReward(
-        uint256 roundNum,
-        uint256 level,
-        bytes32[] calldata merkleProof
-    ) external {
+    function claimReward(uint256 roundNum, uint256 level, bytes32[] calldata merkleProof) external {
         require(level < 3, "Invalid reward level");
         Round storage round = rounds[roundNum];
 
         require(round.isSettled, "Round not settled");
         require(!round.hasClaimed[msg.sender], "Already claimed");
 
-        // 验证merkle证明
-        // bytes32 leaf = keccak256(abi.encodePacked(msg.sender, level));
-        // require(
-        //     MerkleProof.verify(merkleProof, round.merkleRoot, leaf),
-        //     "Invalid merkle proof"
-        // );
+        // merkle
+        bytes32 leaf = keccak256(abi.encodePacked(msg.sender, level));
+        require(MerkleProof.verify(merkleProof, round.merkleRoot, leaf), "Invalid merkle proof");
 
-        // round.hasClaimed[msg.sender] = true;
+        round.hasClaimed[msg.sender] = true;
 
-        // 使用SafeTransferLib发送ERC20代币奖励
+        // SafeTransferLib
         uint256 reward = round.rewards[level];
         rewardToken.safeTransfer(msg.sender, reward);
 
         emit RewardClaimed(roundNum, msg.sender, level, reward);
     }
 
-    // 查询地址是否已领奖
-    function hasUserClaimed(
-        uint256 roundNum,
-        address user
-    ) external view returns (bool) {
+    // query claim
+    function hasUserClaimed(uint256 roundNum, address user) external view returns (bool) {
         return rounds[roundNum].hasClaimed[user];
     }
 
-    // 查询轮次信息
-    function getRoundInfo(
-        uint256 roundNum
-    )
+    // query round info
+    function getRoundInfo(uint256 roundNum)
         external
         view
         returns (
@@ -159,18 +127,10 @@ contract Lottery is Ownable {
         )
     {
         Round storage round = rounds[roundNum];
-        return (
-            round.owner,
-            round.startTime,
-            round.endTime,
-            round.numbers,
-            round.rewards,
-            round.isSettled,
-            round.isEnded
-        );
+        return
+            (round.owner, round.startTime, round.endTime, round.numbers, round.rewards, round.isSettled, round.isEnded);
     }
 
-    //
     function emergencyWithdraw(uint256 amount) external onlyOwner {
         rewardToken.safeTransfer(msg.sender, amount);
     }

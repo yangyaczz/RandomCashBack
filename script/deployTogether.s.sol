@@ -15,11 +15,9 @@ contract DTScript is Script {
         usdc.mint(0xBEbAF2a9ad714fEb9Dd151d81Dd6d61Ae0535646, 10000 * 10 ** 18);
         usdc.mint(0xB4F205238b7556790dACef577D371Cb8f6C87215, 10000 * 10 ** 18);
 
-    
         Lottery lottery = new Lottery(address(usdc));
 
         usdc.transfer(address(lottery), 800 * 10 ** 18);
-
 
         uint256[] memory uints = new uint256[](3);
         uints[0] = 3 * 10 ** 16;
@@ -36,5 +34,5 @@ contract DTScript is Script {
         vm.stopBroadcast();
     }
 }
-    // forge script script/deployTogether.s.sol:DTScript --rpc-url https://testnet.evm.nodes.onflow.org --legacy --broadcast
-
+// forge script script/deployTogether.s.sol:DTScript --rpc-url https://testnet.evm.nodes.onflow.org --legacy --broadcast
+// forge script script/deployTogether.s.sol:DTScript --rpc-url https://rpc-quicknode-holesky.morphl2.io --legacy --broadcast
